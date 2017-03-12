@@ -1,0 +1,5 @@
+C:\Users\Michael\Desktop\GinRummy 402\bin\GinRummyLibrary.dll
+C:\Users\Michael\Desktop\GinRummy 402\bin\GinRummyLibrary.pdb
+C:\Users\Michael\Desktop\GinRummy 402\bin\GinRummyLibrary.XML
+C:\Users\Michael\Desktop\GinRummy 402\GinRummyLibrary\obj\Debug\GinRummyLibrary.dll
+C:\Users\Michael\Desktop\GinRummy 402\GinRummyLibrary\obj\Debug\GinRummyLibrary.pdb
