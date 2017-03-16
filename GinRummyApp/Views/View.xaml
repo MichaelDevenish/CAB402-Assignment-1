@@ -57,7 +57,7 @@
 
         <StackPanel Orientation="Horizontal" HorizontalAlignment="Center"  Grid.Row="2" >
 
-            <Button Command="{Binding ButtonCommand}" Content="Button" Width="100" FontSize="20" Height="100" Margin="10,10,50,10"/>
+            <Button Command="{Binding ButtonCommand}"  Content="{Binding ButtonName}" Width="100" FontSize="20" Height="100" Margin="10,10,50,10" IsEnabled="{Binding ButtonEnabled}" />
 
             <ItemsControl ItemsSource="{Binding Path=Discards}" >
                 <ItemsControl.ItemTemplate>

@@ -7,14 +7,17 @@ using System.Windows.Input;
 
 namespace QUT
 {
-    class ViewModel: INotifyPropertyChanged
+    class ViewModel : INotifyPropertyChanged
     {
         public ObservableCollection<Cards.Card> HumanCards { get; private set; }
         public ObservableCollection<Cards.Card> ComputerCards { get; private set; }
         public ObservableCollection<Cards.Card> Discards { get; private set; }
         public ObservableCollection<Cards.Card> RemainingDeck { get; private set; }
-
         public InteractionRequest<INotification> NotificationRequest { get; private set; }
+
+        private bool pickedUpCard = false;
+        private bool placedDownCard = true;
+        private Cards.Card discardCard;
 
         public ICommand ButtonCommand { get; set; }
         public ICommand DiscardCardFromHandCommand { get; set; }
@@ -30,6 +33,9 @@ namespace QUT
             TakeCardFromDeckCommand = new DelegateCommand<Cards.Card>(TakeCardFromDeck);
 
             ButtonCommand = new DelegateCommand(ButtonClick);
+            ButtonName = "knock";
+            ButtonEnabled = false;
+
             NotificationRequest = new InteractionRequest<INotification>();
 
             HumanCards = new ObservableCollection<Cards.Card>();
@@ -72,20 +78,45 @@ namespace QUT
 
         private void TakeCardFromDeck(Cards.Card card)
         {
-            RemainingDeck.Remove(card);
-            HumanCards.Add(card);
+            if (placedDownCard)
+            {
+                RemainingDeck.Remove(card);
+                HumanCards.Add(card);
+                pickedUpCard = true;
+                placedDownCard = false;
+            }
+
         }
 
         private void TakeCardFromDiscardPile(Cards.Card p)
         {
-            Discards.Remove(p);
-            HumanCards.Add(p);
+            if (placedDownCard)
+            {
+                Discards.Remove(p);
+                HumanCards.Add(p);
+                discardCard = p;
+                pickedUpCard = true;
+                placedDownCard = false;
+            }
         }
 
         private void DiscardCardFromHand(Cards.Card p)
         {
-            HumanCards.Remove(p);
-            Discards.Add(p);
+            if (pickedUpCard && (discardCard == null || p != discardCard))
+            {
+                HumanCards.Remove(p);
+                Discards.Add(p);
+                pickedUpCard = false;
+                discardCard = null;
+                Task.Run(() => RunAi());
+            }
+        }
+
+        async private void RunAi()
+        {
+            //run AI code here
+            //disable button and enable when done
+            placedDownCard = true;
         }
 
         async private void HumanCards_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
@@ -94,12 +125,27 @@ namespace QUT
             // this might take a while, so let's do it in the background
             int deadwood = await Task.Run(() => GinRummy.Deadwood(HumanCards));
             HumanDeadwood = "Deadwood: " + deadwood;
+            if (deadwood < 10)
+            {
+                ButtonEnabled = true;
+            }
+            else
+            {
+                ButtonEnabled = false;
+            }
+            if (deadwood == 0)
+            {
+                ButtonName = "gin";
+            }
+            else
+            {
+                ButtonName = "knock";
+            }
         }
 
         private string humanDeadwood;
-
-        public string HumanDeadwood 
-        { 
+        public string HumanDeadwood
+        {
             get
             {
                 return humanDeadwood;
@@ -107,8 +153,35 @@ namespace QUT
             private set
             {
                 humanDeadwood = value;
-                if (PropertyChanged != null)
-                    PropertyChanged(this, new PropertyChangedEventArgs("HumanDeadwood"));
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("HumanDeadwood"));
+            }
+        }
+
+        private string buttonName;
+        public string ButtonName
+        {
+            get
+            {
+                return buttonName;
+            }
+            private set
+            {
+                buttonName = value;
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("ButtonName"));
+            }
+        }
+
+        private bool buttonEnabled;
+        public bool ButtonEnabled
+        {
+            get
+            {
+                return buttonEnabled;
+            }
+            private set
+            {
+                buttonEnabled = value;
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("ButtonEnabled"));
             }
         }
 
@@ -119,7 +192,23 @@ namespace QUT
 
         private void ButtonClick()
         {
-            RaiseNotification("You clicked the Button!", "Title");
+            int score = GinRummy.Score(HumanCards, ComputerCards);
+            string result;
+            if (score < 0)
+            {
+                result = "The AI won with " + System.Math.Abs(score) + " points.";
+            }
+            else
+            {
+                result = "You won with " + System.Math.Abs(score) + " points.";
+            }
+            //if there is any cards that the ai has that could make runs when the player knocks (add this to the GinRummy.score algorithim)
+            RaiseNotification(result, "Title");
+            //reset everything
+            //reset booleans and discardcard
+            //put everything back in the deck
+            //reshuffle
+            //deal
         }
     }
 }

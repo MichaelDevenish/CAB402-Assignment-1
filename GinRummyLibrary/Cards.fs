@@ -1,4 +1,5 @@
 ﻿module Cards
+open System
 
 type Suit = Spades | Clubs | Hearts | Diamonds
 type Rank = Ace | Two | Three | Four | Five | Six | Seven | Eight | Nine | Ten | Jack | Queen | King
@@ -21,6 +22,9 @@ let FullDeck =
     allCards
 
 let Shuffle (deck:Deck) = 
+    //let rnd = new Random()
+    //CANT DO TILL NEXT WEEK
+
     deck
     // Fixme: change so that it returns a shuffled deck
 
