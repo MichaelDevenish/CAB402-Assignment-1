@@ -1,5 +1,6 @@
 ﻿using Prism.Commands;
 using Prism.Interactivity.InteractionRequest;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Threading.Tasks;
@@ -204,11 +205,13 @@ namespace QUT
             }
             //if there is any cards that the ai has that could make runs when the player knocks (add this to the GinRummy.score algorithim)
             RaiseNotification(result, "Title");
-            //reset everything
-            //reset booleans and discardcard
-            //put everything back in the deck
-            //reshuffle
-            //deal
+            pickedUpCard = false;
+            placedDownCard = true;
+            HumanCards.Clear();
+            ComputerCards.Clear();
+            Discards.Clear();
+            RemainingDeck.Clear();
+            Deal();
         }
     }
 }
