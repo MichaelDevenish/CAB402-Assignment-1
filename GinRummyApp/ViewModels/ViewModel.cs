@@ -52,9 +52,9 @@ namespace QUT
         private async void Deal()
         {
             var deck = Cards.Shuffle(Cards.FullDeck);
-
             foreach (var card in deck)
             {
+               
                 RemainingDeck.Add(card);
                 await Task.Delay(1);
             }
@@ -128,12 +128,12 @@ namespace QUT
             HumanDeadwood = "Deadwood: " + deadwood;
             if (deadwood < 10)
             {
-                ButtonEnabled = true;
             }
             else
             {
                 ButtonEnabled = false;
             }
+            ButtonEnabled = true;
             if (deadwood == 0)
             {
                 ButtonName = "gin";

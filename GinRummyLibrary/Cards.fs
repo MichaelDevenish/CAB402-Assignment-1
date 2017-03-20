@@ -21,11 +21,20 @@ let allCards =
 let FullDeck = 
     allCards
 
-let Shuffle (deck:Deck) = 
-    //let rnd = new Random()
-    //CANT DO TILL NEXT WEEK
+let rec recShuffle arr (rand:System.Random) =
+    match arr with
+    | [] -> []
+    | head::tail ->
+        let nxt = rand.Next(0,tail.Length)
+        if nxt = 0 then head::(recShuffle tail rand)
+        else 
+            let shuffle = List.map(fun index -> if index = tail.[nxt] then head else index) tail
+            tail.[nxt]::(recShuffle shuffle rand)
 
-    deck
-    // Fixme: change so that it returns a shuffled deck
+let Shuffle (deck:Deck) = 
+    let rnd = new Random()
+    let deckList =List.ofSeq deck
+    let result = recShuffle deckList rnd
+    List.toSeq result 
 
 // Add other functions here related to Card Games ...
