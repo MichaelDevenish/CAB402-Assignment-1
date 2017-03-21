@@ -19,8 +19,6 @@ let rec GetCardScore (arr:Card list) =
         |Nine -> 9+(GetCardScore tail)
         |Ten |Jack |Queen |King -> 10+(GetCardScore tail)
 
-// Add helper functions to help compute Deadwood function
-
 //sets
 let rec checkSet (arr:Card list)=
     match arr with
@@ -62,17 +60,42 @@ let rec checkRun (arr:Card list) index  =
         if filtered.Length > 1 then [(checkRunLength arr arr.[index])]@(checkRun arr (index+1))
         else (checkRun arr (index+1))
 
-let Deadwood (hand:Hand) = 
-    let handList = List.ofSeq hand
-    let runs = List.filter (fun (x:Card list) -> x.Length > 2) (checkRun handList 0)
-    let setsAndRuns = (checkSet handList) @ runs//dosent matter if repeats of runs since it will remove them since they are a lower score
-    
-    //foreach in each subarray see if that value is in another subarray if it is compare the score of those subarrays and remove the smallest
-    //AKA find out if value exists twice in setsAndRuns if so find out which has higher value and remove other
-    // remove result from handList
-    GetCardScore handList
+//getting most efficient
+let share (a:Card list) (b:Card list) = 
+    List.exists (fun x ->(Set.ofList a).Contains x) b
 
-    // Fixme change so that it computes the actual deadwood score
+let rec contains (arr:Card list list) comparedIndex comparitorIndex = 
+    if (comparitorIndex >= (arr.Length-1)) then  arr  
+    else if(share (arr.[comparitorIndex]) (arr.[comparedIndex])) then 
+             if((GetCardScore (arr.[comparitorIndex])) > (GetCardScore (arr.[comparedIndex]))) then
+                  let shrunkenList = (List.filter (fun x -> not (x.Equals(arr.[comparedIndex]))) arr)
+                  if((comparedIndex+1) > (shrunkenList.Length-1)) then 
+                      (contains shrunkenList (comparitorIndex+2) (comparitorIndex+1))
+                  else (contains shrunkenList comparedIndex comparitorIndex)
+             else let shrunkenList = (List.filter (fun x -> not (x.Equals(arr.[comparitorIndex]))) arr)
+                  if((comparedIndex+1) > (shrunkenList.Length-1)) then 
+                      (contains shrunkenList (comparitorIndex+1) (comparitorIndex))
+                  else (contains shrunkenList comparedIndex comparitorIndex)
+        else if((comparedIndex+1) > (arr.Length-1)) then (contains arr (comparitorIndex+2) (comparitorIndex+1))
+        else (contains arr (comparedIndex+1) comparitorIndex)
+           
+let rec flatten l =
+    match l with 
+    | [] -> []
+    | head::tail -> head @ flatten tail
+
+let forgetPickup (hand:Hand) = 
+    if( Seq.length hand > 10) then 
+        List.ofSeq (Seq.take 10 hand)
+        else List.ofSeq hand
+
+let Deadwood (hand:Hand) = 
+    let handList = forgetPickup hand
+    let runs = List.filter (fun (x:Card list) -> x.Length > 2) (checkRun handList 0)
+    let setsAndRuns = (checkSet handList) @ runs
+    let bestSetsAndRuns = flatten(contains setsAndRuns 1 0)
+    let filtered = List.filter(fun x -> not((Set.ofList bestSetsAndRuns).Contains x)) handList
+    GetCardScore filtered
 
 let Score (firstOut:Hand) (secondOut:Hand) =
     0//if there is any cards that the ai has that could make runs when the player knocks (add this to the GinRummy.score algorithim)
