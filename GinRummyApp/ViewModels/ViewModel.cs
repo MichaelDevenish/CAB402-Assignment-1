@@ -19,6 +19,8 @@ namespace QUT
         private bool pickedUpCard = false;
         private bool placedDownCard = true;
         private Cards.Card discardCard;
+        private int aiScore = 0;
+        private int userScore = 0;
 
         public ICommand ButtonCommand { get; set; }
         public ICommand DiscardCardFromHandCommand { get; set; }
@@ -54,7 +56,7 @@ namespace QUT
             var deck = Cards.Shuffle(Cards.FullDeck);
             foreach (var card in deck)
             {
-               
+
                 RemainingDeck.Add(card);
                 await Task.Delay(1);
             }
@@ -109,6 +111,7 @@ namespace QUT
                 Discards.Add(p);
                 pickedUpCard = false;
                 discardCard = null;
+                checkReaminingEmpty();
                 Task.Run(() => RunAi());
             }
         }
@@ -117,7 +120,25 @@ namespace QUT
         {
             //run AI code here
             //disable button and enable when done
+            checkReaminingEmpty();
             placedDownCard = true;
+        }
+
+        private async void checkReaminingEmpty()
+        {
+            if (RemainingDeck.Count <= 0)
+            {
+                Cards.Card newDiscard = Discards[Discards.Count - 1];
+                Discards.RemoveAt(Discards.Count - 1);
+                var temp = Cards.Shuffle(Discards);
+                Discards.Clear();
+                foreach (var card in temp)
+                {
+                    RemainingDeck.Add(card);
+                    await Task.Delay(1);
+                }
+                Discards.Add(newDiscard);
+            }
         }
 
         async private void HumanCards_CollectionChanged(object sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
@@ -128,12 +149,12 @@ namespace QUT
             HumanDeadwood = "Deadwood: " + deadwood;
             if (deadwood < 10)
             {
+                ButtonEnabled = true;
             }
             else
             {
                 ButtonEnabled = false;
             }
-            ButtonEnabled = true;
             if (deadwood == 0)
             {
                 ButtonName = "gin";
@@ -195,14 +216,49 @@ namespace QUT
         {
             int score = GinRummy.Score(HumanCards, ComputerCards);
             string result;
+            bool final = false;
             if (score < 0)
             {
-                result = "The AI won with " + System.Math.Abs(score) + " points.";
+                score = System.Math.Abs(score);
+
+                if (aiScore + score >= 100)
+                {
+                    result = "The AI Has won all games with a total score of " + aiScore +
+                        "\n your final score is " + userScore; 
+                    final = true;
+                }
+                else
+                {
+                    result = "The AI won with " + score + " points.";
+                    aiScore += score;
+                }
             }
             else
             {
-                result = "You won with " + System.Math.Abs(score) + " points.";
+                if (userScore + score >= 100)
+                {
+                    result = "You have won all games with a total score of " + userScore +
+                        "\n the final AI score is " + aiScore;  
+                    final = true;
+                }
+                else
+                {
+                    result = "You won with " + score + " points.";
+                    userScore += score;
+                }
             }
+
+            if (!final)
+            {
+                result += "\nYour current total score = " + userScore +
+                    "\n The current AI score = " + aiScore;
+            }
+            else
+            {
+                userScore = 0;
+                aiScore = 0;
+            }
+
             //if there is any cards that the ai has that could make runs when the player knocks (add this to the GinRummy.score algorithim)
             RaiseNotification(result, "Title");
             pickedUpCard = false;

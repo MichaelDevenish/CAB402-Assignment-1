@@ -25,11 +25,12 @@ let rec recShuffle arr (rand:System.Random) =
     match arr with
     | [] -> []
     | head::tail ->
-        let nxt = rand.Next(0,tail.Length)
-        if nxt = 0 then head::(recShuffle tail rand)
+        let swapIndex = rand.Next(0,tail.Length)
+        if swapIndex = 0 then head::(recShuffle tail rand)
         else 
-            let shuffle = List.map(fun index -> if index = tail.[nxt] then head else index) tail
-            tail.[nxt]::(recShuffle shuffle rand)
+            let shuffle = List.map(fun value -> if value = tail.[swapIndex] then head else value) tail
+            tail.[swapIndex]::(recShuffle shuffle rand)
+
 
 let Shuffle (deck:Deck) = 
     let rnd = new Random()
