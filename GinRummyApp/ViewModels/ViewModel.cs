@@ -149,12 +149,12 @@ namespace QUT
             HumanDeadwood = "Deadwood: " + deadwood;
             if (deadwood < 10)
             {
-                ButtonEnabled = true;
             }
             else
             {
                 ButtonEnabled = false;
             }
+            ButtonEnabled = true;
             if (deadwood == 0)
             {
                 ButtonName = "gin";
@@ -224,7 +224,7 @@ namespace QUT
                 if (aiScore + score >= 100)
                 {
                     result = "The AI Has won all games with a total score of " + aiScore +
-                        "\n your final score is " + userScore; 
+                        "\n your final score is " + userScore;
                     final = true;
                 }
                 else
@@ -238,7 +238,7 @@ namespace QUT
                 if (userScore + score >= 100)
                 {
                     result = "You have won all games with a total score of " + userScore +
-                        "\n the final AI score is " + aiScore;  
+                        "\n the final AI score is " + aiScore;
                     final = true;
                 }
                 else
