@@ -30,7 +30,9 @@ let rec checkSet (arr:Card list)=
     
 //runs
 let existsCheck current checkArray nextRank= 
-    if (List.exists (fun x -> x = {suit=current.suit; rank=nextRank}) checkArray) then {suit=current.suit; rank=nextRank} else current
+    if (List.exists (fun x -> x = {suit=current.suit; rank=nextRank}) checkArray) then
+        {suit=current.suit; rank=nextRank} 
+        else current
 
 let nextExists (arr:Card list) (current:Card)  = 
         let next = existsCheck current arr
@@ -61,23 +63,18 @@ let rec checkRun (arr:Card list) index  =
         else (checkRun arr (index+1))
 
 //getting most efficient
-let share (a:Card list) (b:Card list) = 
-    List.exists (fun x ->(Set.ofList a).Contains x) b
-
-let rec contains (arr:Card list list) comparedIndex comparitorIndex = 
+let rec getMostValuable (arr:Card list list) comparedIndex comparitorIndex = 
+    let cleanRecursive addToTrue addToFalse (arr:Card list list) =  
+         if((comparedIndex+1) > (arr.Length-1)) then 
+            (getMostValuable arr (comparitorIndex+addToTrue+1) (comparitorIndex+addToTrue))
+         else (getMostValuable arr (comparedIndex+addToFalse) comparitorIndex)
+        
     if (comparitorIndex >= (arr.Length-1)) then  arr  
-    else if(share (arr.[comparitorIndex]) (arr.[comparedIndex])) then 
+    else if(List.exists (fun x -> (Set.ofList (arr.[comparitorIndex])).Contains x) (arr.[comparedIndex])) then 
              if((GetCardScore (arr.[comparitorIndex])) > (GetCardScore (arr.[comparedIndex]))) then
-                  let shrunkenList = (List.filter (fun x -> not (x.Equals(arr.[comparedIndex]))) arr)
-                  if((comparedIndex+1) > (shrunkenList.Length-1)) then 
-                      (contains shrunkenList (comparitorIndex+2) (comparitorIndex+1))
-                  else (contains shrunkenList comparedIndex comparitorIndex)
-             else let shrunkenList = (List.filter (fun x -> not (x.Equals(arr.[comparitorIndex]))) arr)
-                  if((comparedIndex+1) > (shrunkenList.Length-1)) then 
-                      (contains shrunkenList (comparitorIndex+1) (comparitorIndex))
-                  else (contains shrunkenList comparedIndex comparitorIndex)
-        else if((comparedIndex+1) > (arr.Length-1)) then (contains arr (comparitorIndex+2) (comparitorIndex+1))
-        else (contains arr (comparedIndex+1) comparitorIndex)
+                cleanRecursive 1 0 (List.filter (fun x -> not (x.Equals(arr.[comparedIndex]))) arr)
+             else cleanRecursive 0 0 (List.filter (fun x -> not (x.Equals(arr.[comparitorIndex]))) arr)
+          else cleanRecursive 1 1 arr
            
 let rec flatten l =
     match l with 
@@ -93,13 +90,18 @@ let Deadwood (hand:Hand) =
     let handList = forgetPickup hand
     let runs = List.filter (fun (x:Card list) -> x.Length > 2) (checkRun handList 0)
     let setsAndRuns = (checkSet handList) @ runs
-    let bestSetsAndRuns = flatten(contains setsAndRuns 1 0)
+    let bestSetsAndRuns = flatten(getMostValuable setsAndRuns 1 0)
     let filtered = List.filter(fun x -> not((Set.ofList bestSetsAndRuns).Contains x)) handList
     GetCardScore filtered
 
 let Score (firstOut:Hand) (secondOut:Hand) =
-    0//if there is any cards that the ai has that could make runs when the player knocks (add this to the GinRummy.score algorithim)
-    // Fixme change so that it computes how many points should be scored by the firstOut hand
-    // (score should be negative if the secondOut hand is the winner)
+    //if there is any cards that the ai has that could make runs when the player knocks (add this to the GinRummy.score algorithim)
+    let firstScore = GetCardScore (List.ofSeq firstOut)
+    let secondScore = GetCardScore (List.ofSeq secondOut)
+    let score = (secondScore - firstScore)
+
+    if  firstScore = 0  then (secondScore + 25)
+    else if(score >= 0 ) then score
+        else (score-25)
 
 // Add other functions related to Gin Rummy here ...
