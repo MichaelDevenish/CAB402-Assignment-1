@@ -112,6 +112,7 @@ namespace QUT
                 pickedUpCard = false;
                 discardCard = null;
                 checkReaminingEmpty();
+                ButtonEnabled = false;
                 Task.Run(() => RunAi());
             }
         }
@@ -121,6 +122,7 @@ namespace QUT
             //run AI code here
             //disable button and enable when done
             checkReaminingEmpty();
+            ButtonEnabled = true;
             placedDownCard = true;
         }
 
@@ -149,12 +151,12 @@ namespace QUT
             HumanDeadwood = "Deadwood: " + deadwood;
             if (deadwood < 10)
             {
+                ButtonEnabled = true;
             }
             else
             {
                 ButtonEnabled = false;
             }
-            ButtonEnabled = true;
             if (deadwood == 0)
             {
                 ButtonName = "gin";
@@ -223,7 +225,7 @@ namespace QUT
 
                 if (aiScore + score >= 100)
                 {
-                    result = "The AI Has won all games with a total score of " + (aiScore+score) +
+                    result = "The AI Has won all games with a total score of " + (aiScore + score) +
                         "\n your final score is " + userScore;
                     final = true;
                 }
@@ -237,7 +239,7 @@ namespace QUT
             {
                 if (userScore + score >= 100)
                 {
-                    result = "You have won all games with a total score of " + (userScore+score) +
+                    result = "You have won all games with a total score of " + (userScore + score) +
                         "\n the final AI score is " + aiScore;
                     final = true;
                 }

@@ -29,40 +29,40 @@ let rec checkSet (arr:Card list)=
         else (checkSet tail) 
     
 //runs
-let existsCheck current checkArray nextRank= 
-    if (List.exists (fun x -> x = {suit=current.suit; rank=nextRank}) checkArray) then
-        {suit=current.suit; rank=nextRank} 
-        else current
-
 let nextExists (arr:Card list) (current:Card)  = 
-        let next = existsCheck current arr
-        match current.rank with
-        |Ace -> next Two 
-        |Two -> next Three 
-        |Three -> next Four 
-        |Four -> next Five
-        |Five -> next Six
-        |Six -> next Seven
-        |Seven -> next Eight 
-        |Eight -> next Nine
-        |Nine -> next Ten
-        |Ten -> next Jack
-        |Jack -> next Queen 
-        |Queen -> next King
-        |King -> current
+    let existsCheck current checkArray nextRank= 
+        if (List.exists (fun x -> x = {suit=current.suit; rank=nextRank}) checkArray) then
+            {suit=current.suit; rank=nextRank} 
+            else current
 
-let rec checkRunLength (arr:Card list) first = 
-    let next = nextExists arr first
-    if (next.Equals(first)) then [next]
-    else [first]@(checkRunLength arr next )
+    let next = existsCheck current arr
+    match current.rank with
+    |Ace -> next Two 
+    |Two -> next Three 
+    |Three -> next Four 
+    |Four -> next Five
+    |Five -> next Six
+    |Six -> next Seven
+    |Seven -> next Eight 
+    |Eight -> next Nine
+    |Nine -> next Ten
+    |Ten -> next Jack
+    |Jack -> next Queen 
+    |Queen -> next King
+    |King -> current
 
 let rec checkRun (arr:Card list) index  = 
+    let rec checkRunLength (arr:Card list) first = 
+        let next = nextExists arr first
+        if (next.Equals(first)) then [next]
+        else [first]@(checkRunLength arr next )
+
     if((arr.Length-1) < index) then [] else
         let filtered = List.filter(fun x -> x.suit = arr.[index].suit ) arr
         if filtered.Length > 1 then [(checkRunLength arr arr.[index])]@(checkRun arr (index+1))
         else (checkRun arr (index+1))
 
-//getting most efficient
+//getting most valuable sets/runs
 let rec getMostValuable (arr:Card list list) comparedIndex comparitorIndex = 
     let cleanRecursive addToTrue addToFalse (arr:Card list list) =  
          if((comparedIndex+1) > (arr.Length-1)) then 
@@ -74,8 +74,8 @@ let rec getMostValuable (arr:Card list list) comparedIndex comparitorIndex =
              if((GetCardScore (arr.[comparitorIndex])) > (GetCardScore (arr.[comparedIndex]))) then
                 cleanRecursive 1 0 (List.filter (fun x -> not (x.Equals(arr.[comparedIndex]))) arr)
              else cleanRecursive 0 0 (List.filter (fun x -> not (x.Equals(arr.[comparitorIndex]))) arr)
-          else cleanRecursive 1 1 arr
-           
+          else cleanRecursive 1 1 arr           
+
 let rec flatten l =
     match l with 
     | [] -> []
@@ -84,7 +84,7 @@ let rec flatten l =
 let forgetPickup (hand:Hand) = 
     if( Seq.length hand > 10) then 
         List.ofSeq (Seq.take 10 hand)
-        else List.ofSeq hand
+    else List.ofSeq hand
 
 let Deadwood (hand:Hand) = 
     let handList = forgetPickup hand
@@ -96,8 +96,8 @@ let Deadwood (hand:Hand) =
 
 let Score (firstOut:Hand) (secondOut:Hand) =
     //if there is any cards that the ai has that could make runs when the player knocks (add this to the GinRummy.score algorithim)
-    let firstScore = GetCardScore (List.ofSeq firstOut)
-    let secondScore = GetCardScore (List.ofSeq secondOut)
+    let firstScore = Deadwood (List.ofSeq firstOut)
+    let secondScore = Deadwood (List.ofSeq secondOut)
     let score = (secondScore - firstScore)
 
     if  firstScore = 0  then (secondScore + 25)
