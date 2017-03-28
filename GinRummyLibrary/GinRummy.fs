@@ -63,11 +63,11 @@ let rec checkRun (arr:Card list) index  =
         else (checkRun arr (index+1))
 
 //getting most valuable sets/runs
-let rec getMostValuable (arr:Card list list) comparedIndex comparitorIndex = 
+let rec getMostValuable comparedIndex comparitorIndex (arr:Card list list)= 
     let cleanRecursive addToTrue addToFalse (arr:Card list list) =  
          if((comparedIndex+1) > (arr.Length-1)) then 
-            (getMostValuable arr (comparitorIndex+addToTrue+1) (comparitorIndex+addToTrue))
-         else (getMostValuable arr (comparedIndex+addToFalse) comparitorIndex)
+            (getMostValuable (comparitorIndex+addToTrue+1) (comparitorIndex+addToTrue) arr)
+         else (getMostValuable (comparedIndex+addToFalse) comparitorIndex arr)
         
     if (comparitorIndex >= (arr.Length-1)) then  arr  
     else if(List.exists (fun x -> (Set.ofList (arr.[comparitorIndex])).Contains x) (arr.[comparedIndex])) then 
@@ -87,10 +87,15 @@ let forgetPickup (hand:Hand) =
     else List.ofSeq hand
 
 let Deadwood (hand:Hand) = 
+    let combine a b = 
+        a @ b
+    
     let handList = forgetPickup hand
-    let runs = List.filter (fun (x:Card list) -> x.Length > 2) (checkRun handList 0)
-    let setsAndRuns = (checkSet handList) @ runs
-    let bestSetsAndRuns = flatten(getMostValuable setsAndRuns 1 0)
+    let bestSetsAndRuns = 
+        checkRun handList 0
+        |> List.filter (fun (x:Card list) -> x.Length > 2)
+        |> combine (checkSet handList) |> getMostValuable 1 0 |> flatten
+
     let filtered = List.filter(fun x -> not((Set.ofList bestSetsAndRuns).Contains x)) handList
     GetCardScore filtered
 

@@ -21,6 +21,7 @@ namespace QUT
         private Cards.Card discardCard;
         private int aiScore = 0;
         private int userScore = 0;
+        private IEnumerable<Cards.Card> PossibleCards;
 
         public ICommand ButtonCommand { get; set; }
         public ICommand DiscardCardFromHandCommand { get; set; }
@@ -70,6 +71,7 @@ namespace QUT
             }
 
             Discards.Add(DrawTopCardFromDeck());
+            PossibleCards = ComputerPlayer.calculatePossibleDeck(ComputerCards, Discards[Discards.Count-1], deck);
         }
 
         private Cards.Card DrawTopCardFromDeck()
@@ -120,7 +122,8 @@ namespace QUT
         async private void RunAi()
         {
             //run AI code here
-            //disable button and enable when done
+            PossibleCards = ComputerPlayer.calculatePossibleDeck(ComputerCards, Discards[Discards.Count - 1], PossibleCards);
+
             checkReaminingEmpty();
             ButtonEnabled = true;
             placedDownCard = true;
