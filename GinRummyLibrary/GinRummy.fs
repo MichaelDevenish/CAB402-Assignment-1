@@ -81,23 +81,17 @@ let rec flatten l =
     | [] -> []
     | head::tail -> head @ flatten tail
 
-let forgetPickup (hand:Hand) = 
-    if( Seq.length hand > 10) then 
-        List.ofSeq (Seq.take 10 hand)
-    else List.ofSeq hand
-
 let Deadwood (hand:Hand) = 
     let combine a b = 
         a @ b
     
-    let handList = forgetPickup hand
+    let handList = List.ofSeq hand
     let bestSetsAndRuns = 
         checkRun handList 0
         |> List.filter (fun (x:Card list) -> x.Length > 2)
         |> combine (checkSet handList) |> getMostValuable 1 0 |> flatten
 
-    let filtered = List.filter(fun x -> not((Set.ofList bestSetsAndRuns).Contains x)) handList
-    GetCardScore filtered
+    GetCardScore (List.filter(fun x -> not((Set.ofList bestSetsAndRuns).Contains x)) handList)
 
 let Score (firstOut:Hand) (secondOut:Hand) =
     //if there is any cards that the ai has that could make runs when the player knocks (add this to the GinRummy.score algorithim)

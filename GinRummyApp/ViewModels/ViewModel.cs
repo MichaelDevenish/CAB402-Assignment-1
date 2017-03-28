@@ -123,7 +123,8 @@ namespace QUT
         {
             //run AI code here
             PossibleCards = ComputerPlayer.calculatePossibleDeck(ComputerCards, Discards[Discards.Count - 1], PossibleCards);
-
+            //decide wether the ai picks up from dicard or main
+            //decides what card to discard and wether to gin, knock or continue
             checkReaminingEmpty();
             ButtonEnabled = true;
             placedDownCard = true;

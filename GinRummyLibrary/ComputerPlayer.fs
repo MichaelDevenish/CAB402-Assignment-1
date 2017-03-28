@@ -5,8 +5,6 @@ open GinRummy
 
 type Move = Gin | Knock | Continue
     
-
-
 let GetBestHandScore cardList = 
     let rec calculateRemove (setsRunsList:Card list list) lengthCheck = 
         let filteredList = List.filter (fun (x:Card list) -> x.Length = lengthCheck ) setsRunsList
@@ -26,21 +24,20 @@ let GetBestHandScore cardList =
     |> List.filter (fun x -> not(x.Equals(RemovedDiscardCard)))
     |> GinRummy.GetCardScore
 
+let rec GetDeckScores computerHand possibleDeck = 
+    match possibleDeck with
+    | [] -> []
+    | head::tail -> 
+        GetBestHandScore (computerHand @ [head]) :: (GetDeckScores computerHand possibleDeck)
+
 let ComputerPickupDiscard (computerHand:Hand) (topDiscard:Card) (possibleDeck:Deck) =
-
-    //calculate the deadwood for picking up the discard card and removing a card that isnt near a run
-    //and the possible deadwood for taking a run card  doing so and do the lower
-
-    //GET THE DISCARD SCORE//    
-    let DiscardScore = GetBestHandScore (List.ofSeq computerHand @ [topDiscard])
-                                   
-    //GET THE POSSIBLE RUN SCORE//
-    //do above for each possible card in the possibleDeck and get average (do using recursive function that returns list of each best hand)
-
-
-    true
-    // Fixme: change function so that it computes if Computer should pickup from Discard pile 
-    //        or draw a fresh card from the deck
+    let DiscardScore = GetBestHandScore (List.ofSeq computerHand @ [topDiscard])                                 
+    let DeckScore = 
+        (List.ofSeq possibleDeck)
+        |> GetDeckScores (List.ofSeq computerHand) 
+        |> List.averageBy (fun x -> double x)
+    
+    if(double DiscardScore < DeckScore) then true else false
 
 let ComputerMove newHand =
     //reduce the ammount of deadwood possible
@@ -48,7 +45,6 @@ let ComputerMove newHand =
     (Continue, Some card)
     // Fixme: change function so that it computes which action the Computer should take: Continue, Knock or Gin 
     //        and which card would be best to discard
-
 
 let calculatePossibleDeck (computerHand:Hand) (topDiscard:Card) (possibleDeck:Deck) = 
     let removeDiscard = Seq.filter (fun x -> not (x.Equals topDiscard)) possibleDeck
