@@ -11,9 +11,8 @@ let GetBestHandScore cardList =
         if (filteredList.Length > 0 ) then filteredList.[0].[0] 
         else calculateRemove setsRunsList (lengthCheck+1)
 
-    let mostValuableDiscard = 
-        (GinRummy.checkSet cardList) @ (GinRummy.checkRun cardList 0) 
-        |> GinRummy.getMostValuable 1 0
+    let mostValuable =  (GinRummy.checkSet cardList 1) @ (GinRummy.checkRun cardList 0) 
+    let mostValuableDiscard =  GinRummy.getMostValuable 1 0 mostValuable
 
     let RemovedDiscardCard = calculateRemove mostValuableDiscard 1
 
@@ -28,7 +27,7 @@ let rec GetDeckScores computerHand possibleDeck =
     match possibleDeck with
     | [] -> []
     | head::tail -> 
-        GetBestHandScore (computerHand @ [head]) :: (GetDeckScores computerHand possibleDeck)
+        GetBestHandScore (computerHand @ [head]) :: (GetDeckScores computerHand tail)
 
 let ComputerPickupDiscard (computerHand:Hand) (topDiscard:Card) (possibleDeck:Deck) =
     let DiscardScore = GetBestHandScore (List.ofSeq computerHand @ [topDiscard])                                 

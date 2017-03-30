@@ -21,6 +21,8 @@ let allCards =
 let FullDeck = 
     allCards
 
+
+
 let rec recShuffle arr (rand:System.Random) =
     match arr with
     | [] -> []
@@ -33,9 +35,11 @@ let rec recShuffle arr (rand:System.Random) =
 
 
 let Shuffle (deck:Deck) = 
+
     let rnd = new Random()
     let deckList =List.ofSeq deck
+
     let result = recShuffle deckList rnd
-    List.toSeq result 
+    List.toSeq result
 
 // Add other functions here related to Card Games ...
