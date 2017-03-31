@@ -28,7 +28,6 @@ let rec checkSet (arr:Card list) index =
     else 
         []
 
-    
 //runs
 let nextExists (arr:Card list) (current:Card)  = 
     let existsCheck current checkArray nextRank= 
@@ -58,7 +57,6 @@ let rec checkRun (arr:Card list) index  =
         if (next.Equals(first)) then [next]
         else [first]@(checkRunLength arr next)
     
-
     if((arr.Length-1) < index) then [] else
         let filtered = List.filter(fun x -> x.suit = arr.[index].suit ) arr
         if filtered.Length > 1 then [(checkRunLength  arr arr.[index])]@(checkRun arr (index+1))
@@ -79,17 +77,6 @@ let rec getMostValuable comparedIndex comparitorIndex (arr:Card list list)=
          if((comparedIndex+1) > (arr.Length-1)) then 
             (getMostValuable (comparitorIndex+addToTrue+1) (comparitorIndex+addToTrue) arr)
          else (getMostValuable (comparedIndex+addToFalse) comparitorIndex arr)
-    
-    let findNonMutual item1 item2= 
-          let tempList = List.filter (fun x -> not (x.Equals(item1)) && not (x.Equals(item2))) arr 
-          let test = List.filter (fun x -> not (List.exists  (fun e -> (Set.ofList (item1)).Contains e) x) ) tempList
-          List.filter (fun x -> (List.exists  (fun e -> (Set.ofList (item2)).Contains e) x) ) test
-       
-    let rec checkIn main comparitor = 
-        match comparitor with 
-        | [] -> []
-        | head::tail ->
-            checkIn (List.filter (fun x -> not (List.exists  (fun e -> (Set.ofList (head)).Contains e) x) ) main) tail
 
     if (comparitorIndex >= (arr.Length-1)) then arr  
     else if(List.exists (fun x -> (Set.ofList (arr.[comparitorIndex])).Contains x) (arr.[comparedIndex])) then         
