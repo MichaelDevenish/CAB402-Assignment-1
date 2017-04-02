@@ -1,9 +1,11 @@
 ﻿using Prism.Commands;
 using Prism.Interactivity.InteractionRequest;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Threading.Tasks;
+using System.Windows;
 using System.Windows.Input;
 
 namespace QUT
@@ -71,7 +73,7 @@ namespace QUT
             }
 
             Discards.Add(DrawTopCardFromDeck());
-            PossibleCards = ComputerPlayer.calculatePossibleDeck(ComputerCards, Discards[Discards.Count-1], deck);
+            PossibleCards = ComputerPlayer.calculatePossibleDeck(ComputerCards, Discards[Discards.Count - 1], deck);
         }
 
         private Cards.Card DrawTopCardFromDeck()
@@ -113,24 +115,56 @@ namespace QUT
                 Discards.Add(p);
                 pickedUpCard = false;
                 discardCard = null;
-                checkReaminingEmpty();
-                ButtonEnabled = false;
-                Task.Run(() => RunAi());
+                RunAi();
             }
         }
 
         async private void RunAi()
         {
-            //run AI code here
-            PossibleCards = ComputerPlayer.calculatePossibleDeck(ComputerCards, Discards[Discards.Count - 1], PossibleCards);
-            //decide wether the ai picks up from dicard or main
-            //decides what card to discard and wether to gin, knock or continue
+            await Task.Delay(100);
             checkReaminingEmpty();
-            ButtonEnabled = true;
+            Cards.Card discardCard = Discards[Discards.Count - 1];
+            PossibleCards = ComputerPlayer.calculatePossibleDeck(ComputerCards, discardCard, PossibleCards);
+            if (ComputerPlayer.ComputerPickupDiscard(ComputerCards, discardCard, PossibleCards))
+            {
+
+                Discards.Remove(discardCard);
+                ComputerCards.Add(discardCard);
+
+            }
+            else
+            {
+                ComputerCards.Add(DrawTopCardFromDeck());
+            }
+            await Task.Delay(100);
+            var move = ComputerPlayer.ComputerMove(ComputerCards);
+
+            if (move.Item1 == ComputerPlayer.Move.Continue)
+            {
+                ComputerCards.Remove(move.Item2.Value);
+                Discards.Add(move.Item2.Value);
+            }
+            else if (move.Item1 == ComputerPlayer.Move.Gin)
+            {
+                if (move.Item2.Value != null)
+                {
+                    ComputerCards.Remove(move.Item2.Value);
+                    Discards.Add(move.Item2.Value);
+                }
+                win(ComputerCards, HumanCards, true);
+            }
+            else
+            {
+                ComputerCards.Remove(move.Item2.Value);
+                Discards.Add(move.Item2.Value);
+                win(ComputerCards, HumanCards, true);
+            }
+            await Task.Delay(100);
+            checkReaminingEmpty();
             placedDownCard = true;
         }
 
-        private async void checkReaminingEmpty()
+        private void checkReaminingEmpty()
         {
             if (RemainingDeck.Count <= 0)
             {
@@ -141,7 +175,7 @@ namespace QUT
                 foreach (var card in temp)
                 {
                     RemainingDeck.Add(card);
-                    await Task.Delay(1);
+                    Task.Delay(10);
                 }
                 Discards.Add(newDiscard);
             }
@@ -218,54 +252,63 @@ namespace QUT
             NotificationRequest.Raise(new Notification { Content = msg, Title = title });
         }
 
-        private void ButtonClick()
+        private string AIWin(int score)
         {
-            int score = GinRummy.Score(HumanCards, ComputerCards);
-            string result;
-            bool final = false;
-            if (score < 0)
+            string result = "";
+            score = System.Math.Abs(score);
+            if (aiScore + score >= 100)
             {
-                score = System.Math.Abs(score);
-
-                if (aiScore + score >= 100)
-                {
-                    result = "The AI Has won all games with a total score of " + (aiScore + score) +
-                        "\n your final score is " + userScore;
-                    final = true;
-                }
-                else
-                {
-                    result = "The AI won with " + score + " points.";
-                    aiScore += score;
-                }
-            }
-            else
-            {
-                if (userScore + score >= 100)
-                {
-                    result = "You have won all games with a total score of " + (userScore + score) +
-                        "\n the final AI score is " + aiScore;
-                    final = true;
-                }
-                else
-                {
-                    result = "You won with " + score + " points.";
-                    userScore += score;
-                }
-            }
-
-            if (!final)
-            {
-                result += "\nYour current total score = " + userScore +
-                    "\n The current AI score = " + aiScore;
-            }
-            else
-            {
+                result = "The AI Has won all games with a total score of " + (aiScore + score) +
+                    "\n your final score is " + userScore;
                 userScore = 0;
                 aiScore = 0;
             }
+            else
+            {
+                result = "The AI won with " + score + " points.";
+                result += "\nYour current total score = " + userScore +
+                    "\n The current AI score = " + aiScore;
+                aiScore += score;
+            }
+            return result;
+        }
 
-            //if there is any cards that the ai has that could make runs when the player knocks (add this to the GinRummy.score algorithim)
+        private string PlayerWin(int score)
+        {
+            string result = "";
+            if (userScore + score >= 100)
+            {
+                result = "You have won all games with a total score of " + (userScore + score) +
+                    "\n the final AI score is " + aiScore;
+                userScore = 0;
+                aiScore = 0;
+            }
+            else
+            {
+                result = "You won with " + score + " points.";
+                result += "\nYour current total score = " + userScore +
+                    "\n The current AI score = " + aiScore;
+                userScore += score;
+            }
+            return result;
+        }
+
+        private void win(ObservableCollection<Cards.Card> winner, ObservableCollection<Cards.Card> loser, bool aiOrPlayer)
+        {
+            int score = GinRummy.Score(winner, loser);
+            string result;
+
+            if (score < 0)
+            {
+                if (!aiOrPlayer) result = AIWin(score);
+                else result = PlayerWin(score);
+            }
+            else
+            {
+                if (aiOrPlayer) result = AIWin(score);
+                else result = PlayerWin(score);
+            }
+
             RaiseNotification(result, "Title");
             pickedUpCard = false;
             placedDownCard = true;
@@ -274,6 +317,11 @@ namespace QUT
             Discards.Clear();
             RemainingDeck.Clear();
             Deal();
+        }
+
+        private void ButtonClick()
+        {
+            win(HumanCards, ComputerCards, false);
         }
     }
 }

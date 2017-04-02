@@ -67,9 +67,8 @@ let rec expandRuns (arr:Card list list) =
     | [] -> []
     | head::tail -> 
         let shrunken =List.filter (fun x -> not (x = head.[head.Length-1])) head   
-        if (head.Length > 3) then [shrunken] @ [head] @ expandRuns tail
+        if (head.Length > 2) then [shrunken] @ [head] @ expandRuns tail
         else [head] @ expandRuns tail
-
 
 //getting most valuable sets/runs
 let rec getMostValuable comparedIndex comparitorIndex (arr:Card list list)= 
@@ -106,7 +105,6 @@ let Deadwood (hand:Hand) =
         | head::tail -> (reverse tail) @ [head]
     
     let handList = List.ofSeq hand
-
     let bestSetsAndRuns = 
         checkRun handList 0
         |> expandRuns
@@ -114,16 +112,16 @@ let Deadwood (hand:Hand) =
         |> combine (checkSet handList 0)
         |> List.sortBy (fun x -> GetCardScore x )
         |> reverse
-        |> RemoveDuplicates
-        
-        
-    let result = bestSetsAndRuns |> getMostValuable 1 0 |> flatten
-    
-    let filtered = (List.filter(fun x -> not((Set.ofList result).Contains x)) handList)
- 
-    let score = GetCardScore filtered
+        |> RemoveDuplicates          
+    let result = 
+        bestSetsAndRuns
+        |> getMostValuable 1 0
+        |> flatten 
+        |> Set.ofList
 
-    score
+    (List.filter(fun x -> not(result.Contains x)) handList)
+    |> GetCardScore
+ 
 
 let Score (firstOut:Hand) (secondOut:Hand) =
     //if there is any cards that the ai has that could make runs when the player knocks (add this to the GinRummy.score algorithim)
