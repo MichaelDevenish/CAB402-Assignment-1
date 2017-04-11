@@ -4,22 +4,6 @@ open Cards
 open GinRummy
 
 type Move = Gin | Knock | Continue
-
-let rec calculateDiscard lengthCheck (setsRunsList:Card list list)  = 
-
-    let greater = 
-        setsRunsList
-        |> List.filter (fun x -> (x.Length > (lengthCheck))) 
-        |> GinRummy.flatten
-        |> Set.ofList
-    
-    let filteredList = 
-        setsRunsList    
-        |> List.filter (fun x -> not(List.exists (fun e -> greater.Contains e)x))
-     
-    if (filteredList.Length > 0 ) then
-        filteredList.[0].[0] 
-    else (calculateDiscard (lengthCheck+1) setsRunsList)
     
 let GetRemovedDeadwood cardList removed =   
     cardList 
@@ -27,10 +11,24 @@ let GetRemovedDeadwood cardList removed =
     |> List.toSeq 
     |> GinRummy.Deadwood
 
+let rec getDiscardScores currentPos (cardList:Card list) =
+    if(currentPos < cardList.Length) then 
+        [GetRemovedDeadwood cardList (cardList.[currentPos])] @ (getDiscardScores (currentPos+1) cardList)
+    else []
+
+let getDiscard (cards:Card list) discardScores = 
+    let discardPos = 
+        discardScores
+        |> List.mapi (fun i v -> i, v) 
+        |> List.minBy snd
+        |> fst
+
+    cards.[discardPos]
+
 let GetBestHandScore cardList = 
     let set =  (GinRummy.checkSet cardList 1) @ (GinRummy.checkRun cardList 0) 
-    
-    let discard = calculateDiscard 1 set
+    let test = getDiscardScores 0 cardList
+    let discard = getDiscard cardList test
     GetRemovedDeadwood cardList discard
 
 let rec GetDeckScores computerHand possibleDeck = 
@@ -54,9 +52,8 @@ let ComputerMove newHand =
         (Gin, None)
     else  
         let cards = List.ofSeq newHand
-        let Discard = 
-            (GinRummy.checkSet cards 1) @ (GinRummy.checkRun cards 0) 
-            |> calculateDiscard 1
+        let test = getDiscardScores 0 cards
+        let Discard = getDiscard cards test
         let score = GetRemovedDeadwood cards Discard
 
         if(score = 0) then (Gin, Some Discard)

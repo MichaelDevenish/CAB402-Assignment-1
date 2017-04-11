@@ -21,25 +21,13 @@ let allCards =
 let FullDeck = 
     allCards
 
-
-
-let rec recShuffle arr (rand:System.Random) =
-    match arr with
-    | [] -> []
-    | head::tail ->
-        let swapIndex = rand.Next(0,tail.Length)
-        if swapIndex = 0 then head::(recShuffle tail rand)
-        else 
-            let shuffle = List.map(fun value -> if value = tail.[swapIndex] then head else value) tail
-            tail.[swapIndex]::(recShuffle shuffle rand)
-
+let rnd = new Random()
 
 let Shuffle (deck:Deck) = 
-
-    let rnd = new Random()
-    let deckList =List.ofSeq deck
-
-    let result = recShuffle deckList rnd
-    List.toSeq result
+    Seq.sortBy (fun x -> rnd.Next()) deck
 
 // Add other functions here related to Card Games ...
+let CheckDuplicates cards = 
+    let Duplicates = cards |> Seq.groupBy id |> Seq.map snd |> Seq.exists (fun s -> (Seq.length s) > 1)
+    if Duplicates then 
+        raise (new System.Exception "Duplicates Found!")
