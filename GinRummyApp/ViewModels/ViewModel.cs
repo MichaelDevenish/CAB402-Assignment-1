@@ -73,7 +73,7 @@ namespace QUT
             }
 
             Discards.Add(DrawTopCardFromDeck());
-            PossibleCards = ComputerPlayer.calculatePossibleDeck(ComputerCards, Discards[Discards.Count - 1], deck);
+            PossibleCards = ComputerPlayer.CalculatePossibleDeck(ComputerCards, Discards[Discards.Count - 1], deck);
         }
 
         private Cards.Card DrawTopCardFromDeck()
@@ -121,22 +121,20 @@ namespace QUT
 
         async private void RunAi()
         {
-            await Task.Delay(100);
+            await Task.Delay(300);
             checkReaminingEmpty();
             Cards.Card discardCard = Discards[Discards.Count - 1];
-            PossibleCards = ComputerPlayer.calculatePossibleDeck(ComputerCards, discardCard, PossibleCards);
+            PossibleCards = ComputerPlayer.CalculatePossibleDeck(ComputerCards, discardCard, PossibleCards);
             if (ComputerPlayer.ComputerPickupDiscard(ComputerCards, discardCard, PossibleCards))
             {
-
                 Discards.Remove(discardCard);
                 ComputerCards.Add(discardCard);
-
             }
             else
             {
                 ComputerCards.Add(DrawTopCardFromDeck());
             }
-            await Task.Delay(100);
+            await Task.Delay(300);
             var move = ComputerPlayer.ComputerMove(ComputerCards);
 
             if (move.Item1 == ComputerPlayer.Move.Continue)
