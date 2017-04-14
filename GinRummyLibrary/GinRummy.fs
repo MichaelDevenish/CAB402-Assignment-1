@@ -6,60 +6,57 @@ open Cards
 let rec GetCardScore (cardList:Card list) = 
     if(cardList.Length > 0) then
         let index = List.findIndex (fun x -> x = cardList.Head.rank) AllRanks
-
         if index < 9 then (index+1)+(GetCardScore cardList.Tail)
         else 10 + (GetCardScore cardList.Tail)
     else 0
 
 //sets
-let rec checkSet (cardList:Card list) index =
+let rec GetSets (cardList:Card list) index =
     if(index < cardList.Length ) then 
         let filtered = List.filter (fun x -> x.rank = cardList.[index].rank ) cardList
-
-        if filtered.Length > 2 then [filtered] @ (checkSet cardList (index+1))
-        else (checkSet cardList (index+1)) 
+        if filtered.Length > 2 then [filtered] @ (GetSets cardList (index+1))
+        else (GetSets cardList (index+1)) 
     else []
 
 //runs
-let nextExists (cardList:Card list) (current:Card)  =     
-    let index = List.findIndex (fun x -> x = current.rank) AllRanks
+let rec GetRun (cardList:Card list) startingPoint = 
+    let index = List.findIndex (fun x -> x = startingPoint.rank) AllRanks
+    let next =
+        if (index < AllRanks.Length-1) 
+            && (List.exists (fun x -> x = {suit=startingPoint.suit; rank=AllRanks.[index+1]}) cardList) then
+            ({suit=startingPoint.suit; rank=AllRanks.[index+1]}) 
+        else startingPoint
 
-    if (index < AllRanks.Length-1) && (List.exists (fun x -> x = {suit=current.suit; rank=AllRanks.[index+1]}) cardList) then
-        {suit=current.suit; rank=AllRanks.[index+1]} 
-    else current
+    if (next.Equals(startingPoint)) then [next]
+    else [startingPoint]@(GetRun cardList next)
 
-let rec checkRun (cardList:Card list) index  = 
-    let rec checkRunLength (arr:Card list) first = 
-        let next = nextExists arr first
-        if (next.Equals(first)) then [next]
-        else [first]@(checkRunLength arr next)
-    
+let rec GetRuns (cardList:Card list) index  =    
     if((cardList.Length-1) < index) then [] else
         let filtered = List.filter(fun x -> x.suit = cardList.[index].suit ) cardList
-        if filtered.Length > 1 then [(checkRunLength cardList cardList.[index])]@(checkRun cardList (index+1))
-        else (checkRun cardList (index+1))
+        if filtered.Length > 1 then [(GetRun cardList cardList.[index])]@(GetRuns cardList (index+1))
+        else (GetRuns cardList (index+1))
 
-let rec expandRuns (cardList:Card list list) = 
+let rec ExpandRuns (cardList:Card list list) = 
     match cardList with 
     | [] -> []
     | head::tail -> 
         let shrunken =List.filter (fun x -> not (x = head.[head.Length-1])) head   
-        if (head.Length > 2) then [shrunken] @ [head] @ expandRuns tail
-        else [head] @ expandRuns tail
+        if (head.Length > 2) then [shrunken] @ [head] @ ExpandRuns tail
+        else [head] @ ExpandRuns tail
 
 //getting most valuable sets/runs
 let rec getMostValuable comparedIndex comparitorIndex (setsAndRuns:Card list list)= 
-    let cleanRecursive addToTrue addToFalse (arr:Card list list) =  
-         if((comparedIndex+1) > (arr.Length-1)) then 
-            (getMostValuable (comparitorIndex+addToTrue+1) (comparitorIndex+addToTrue) arr)
-         else (getMostValuable (comparedIndex+addToFalse) comparitorIndex arr)
+    let ValuableProcess addToTrue addToFalse (setsAndRuns:Card list list) =  
+         if((comparedIndex+1) > (setsAndRuns.Length-1)) then 
+            (getMostValuable (comparitorIndex+addToTrue+1) (comparitorIndex+addToTrue) setsAndRuns)
+         else (getMostValuable (comparedIndex+addToFalse) comparitorIndex setsAndRuns)
 
     if (comparitorIndex >= (setsAndRuns.Length-1)) then setsAndRuns  
     else if(List.exists (fun x -> (Set.ofList (setsAndRuns.[comparitorIndex])).Contains x) (setsAndRuns.[comparedIndex])) then         
              if(((GetCardScore (setsAndRuns.[comparitorIndex])) > (GetCardScore (setsAndRuns.[comparedIndex]))) ) then
-                cleanRecursive 1 -(comparedIndex-1) (List.filter (fun x -> not (x.Equals(setsAndRuns.[comparedIndex]))) setsAndRuns)
-             else cleanRecursive 0 -(comparedIndex-1) (List.filter (fun x -> not (x.Equals(setsAndRuns.[comparitorIndex]))) setsAndRuns)
-          else cleanRecursive 1 1 setsAndRuns           
+                ValuableProcess 1 -(comparedIndex-1) (List.filter (fun x -> not (x.Equals(setsAndRuns.[comparedIndex]))) setsAndRuns)
+             else ValuableProcess 0 -(comparedIndex-1) (List.filter (fun x -> not (x.Equals(setsAndRuns.[comparitorIndex]))) setsAndRuns)
+          else ValuableProcess 1 1 setsAndRuns           
 
 //helper functions
 let rec RemoveDuplicates list = 
@@ -71,11 +68,11 @@ let rec RemoveDuplicates list =
 let Deadwood (hand:Hand) =    
     let handList = List.ofSeq hand
     let bestSetsAndRuns = 
-        checkRun handList 0 |> expandRuns |> List.filter (fun (x:Card list) -> x.Length > 2) 
-        |> combine (checkSet handList 0) |> List.sortBy (fun x -> GetCardScore x ) |> reverse |> RemoveDuplicates    
+        GetRuns handList 0 |> ExpandRuns |> List.filter (fun (x:Card list) -> x.Length > 2) 
+        |> combine (GetSets handList 0) |> List.sortBy (fun x -> GetCardScore x ) |> reverse |> RemoveDuplicates    
               
-    let result = bestSetsAndRuns |> getMostValuable 1 0 |> flatten |> Set.ofList
-    handList |> List.filter(fun x -> not(result.Contains x)) |> GetCardScore
+    let scoreRemovedCards = bestSetsAndRuns |> getMostValuable 1 0 |> flatten |> Set.ofList
+    handList |> List.filter(fun x -> not(scoreRemovedCards.Contains x)) |> GetCardScore
  
 let Score (firstOut:Hand) (secondOut:Hand) =
     let firstScore = Deadwood (List.ofSeq firstOut)

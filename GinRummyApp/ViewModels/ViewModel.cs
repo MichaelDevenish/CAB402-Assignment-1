@@ -125,18 +125,17 @@ namespace QUT
             checkReaminingEmpty();
             Cards.Card discardCard = Discards[Discards.Count - 1];
             PossibleCards = ComputerPlayer.CalculatePossibleDeck(ComputerCards, discardCard, PossibleCards);
-            if (ComputerPlayer.ComputerPickupDiscard(ComputerCards, discardCard, PossibleCards))
-            {
-                Discards.Remove(discardCard);
-                ComputerCards.Add(discardCard);
-            }
-            else
-            {
-                ComputerCards.Add(DrawTopCardFromDeck());
-            }
+            AiPickup(discardCard);
             await Task.Delay(300);
-            var move = ComputerPlayer.ComputerMove(ComputerCards);
+            AiMove();
+            await Task.Delay(100);
+            checkReaminingEmpty();
+            placedDownCard = true;
+        }
 
+        private void AiMove()
+        {
+            var move = ComputerPlayer.ComputerMove(ComputerCards);
             if (move.Item1 == ComputerPlayer.Move.Continue)
             {
                 ComputerCards.Remove(move.Item2.Value);
@@ -157,9 +156,19 @@ namespace QUT
                 Discards.Add(move.Item2.Value);
                 win(ComputerCards, HumanCards, true);
             }
-            await Task.Delay(100);
-            checkReaminingEmpty();
-            placedDownCard = true;
+        }
+
+        private void AiPickup(Cards.Card discardCard)
+        {
+            if (ComputerPlayer.ComputerPickupDiscard(ComputerCards, discardCard, PossibleCards))
+            {
+                Discards.Remove(discardCard);
+                ComputerCards.Add(discardCard);
+            }
+            else
+            {
+                ComputerCards.Add(DrawTopCardFromDeck());
+            }
         }
 
         private void checkReaminingEmpty()
