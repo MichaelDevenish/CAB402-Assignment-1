@@ -194,22 +194,15 @@ namespace QUT
             // this might take a while, so let's do it in the background
             int deadwood = await Task.Run(() => GinRummy.Deadwood(HumanCards));
             HumanDeadwood = "Deadwood: " + deadwood;
-            if (deadwood < 10)
-            {
-                ButtonEnabled = true;
-            }
-            else
-            {
-                ButtonEnabled = false;
-            }
-            if (deadwood == 0)
-            {
-                ButtonName = "gin";
-            }
-            else
-            {
-                ButtonName = "knock";
-            }
+            ButtonStatus(deadwood);
+        }
+
+        private void ButtonStatus(int deadwood)
+        {
+            if (deadwood <= 10) ButtonEnabled = true;
+            else ButtonEnabled = false;
+            if (deadwood == 0) ButtonName = "gin";
+            else ButtonName = "knock";
         }
 
         private string humanDeadwood;
@@ -263,9 +256,10 @@ namespace QUT
         {
             string result = "";
             score = System.Math.Abs(score);
-            if (aiScore + score >= 100)
+            aiScore += score;
+            if (aiScore >= 100)
             {
-                result = "The AI Has won all games with a total score of " + (aiScore + score) +
+                result = "The AI Has won all games with a total score of " + (aiScore) +
                     "\n your final score is " + userScore;
                 userScore = 0;
                 aiScore = 0;
@@ -275,7 +269,6 @@ namespace QUT
                 result = "The AI won with " + score + " points.";
                 result += "\nYour current total score = " + userScore +
                     "\n The current AI score = " + aiScore;
-                aiScore += score;
             }
             return result;
         }
@@ -283,9 +276,11 @@ namespace QUT
         private string PlayerWin(int score)
         {
             string result = "";
-            if (userScore + score >= 100)
+            score = System.Math.Abs(score);
+            userScore += score;
+            if (userScore >= 100)
             {
-                result = "You have won all games with a total score of " + (userScore + score) +
+                result = "You have won all games with a total score of " + (userScore) +
                     "\n the final AI score is " + aiScore;
                 userScore = 0;
                 aiScore = 0;
@@ -295,7 +290,6 @@ namespace QUT
                 result = "You won with " + score + " points.";
                 result += "\nYour current total score = " + userScore +
                     "\n The current AI score = " + aiScore;
-                userScore += score;
             }
             return result;
         }

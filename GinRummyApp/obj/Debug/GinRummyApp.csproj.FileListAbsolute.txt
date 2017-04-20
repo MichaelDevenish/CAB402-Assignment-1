@@ -12,3 +12,17 @@ C:\Users\Michael\Desktop\GinRummy 402\GinRummyApp\obj\Debug\QUT.Properties.Resou
 C:\Users\Michael\Desktop\GinRummy 402\GinRummyApp\obj\Debug\GinRummyApp.csproj.GenerateResource.Cache
 C:\Users\Michael\Desktop\GinRummy 402\GinRummyApp\obj\Debug\GinRummy.exe
 C:\Users\Michael\Desktop\GinRummy 402\GinRummyApp\obj\Debug\GinRummy.pdb
+C:\Users\Michael\Desktop\CAB402 Assignment 1 N9452982\bin\GinRummy.exe.config
+C:\Users\Michael\Desktop\CAB402 Assignment 1 N9452982\bin\GinRummy.exe
+C:\Users\Michael\Desktop\CAB402 Assignment 1 N9452982\bin\GinRummy.pdb
+C:\Users\Michael\Desktop\CAB402 Assignment 1 N9452982\GinRummyApp\obj\Debug\GinRummyApp.csprojResolveAssemblyReference.cache
+C:\Users\Michael\Desktop\CAB402 Assignment 1 N9452982\GinRummyApp\obj\Debug\App.g.cs
+C:\Users\Michael\Desktop\CAB402 Assignment 1 N9452982\GinRummyApp\obj\Debug\GeneratedInternalTypeHelper.g.cs
+C:\Users\Michael\Desktop\CAB402 Assignment 1 N9452982\GinRummyApp\obj\Debug\GinRummy_MarkupCompile.cache
+C:\Users\Michael\Desktop\CAB402 Assignment 1 N9452982\GinRummyApp\obj\Debug\GinRummy_MarkupCompile.lref
+C:\Users\Michael\Desktop\CAB402 Assignment 1 N9452982\GinRummyApp\obj\Debug\Views\View.baml
+C:\Users\Michael\Desktop\CAB402 Assignment 1 N9452982\GinRummyApp\obj\Debug\GinRummy.g.resources
+C:\Users\Michael\Desktop\CAB402 Assignment 1 N9452982\GinRummyApp\obj\Debug\QUT.Properties.Resources.resources
+C:\Users\Michael\Desktop\CAB402 Assignment 1 N9452982\GinRummyApp\obj\Debug\GinRummyApp.csproj.GenerateResource.Cache
+C:\Users\Michael\Desktop\CAB402 Assignment 1 N9452982\GinRummyApp\obj\Debug\GinRummy.exe
+C:\Users\Michael\Desktop\CAB402 Assignment 1 N9452982\GinRummyApp\obj\Debug\GinRummy.pdb

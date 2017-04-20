@@ -15,12 +15,10 @@ let rec PossibleDiscardScores currentPosition (cardList:Card list) =
     else []
 
 let FindDiscardCard (cards:Card list) = 
-    let discardScores = PossibleDiscardScores 0 cards
-    let discardPos = discardScores |> List.mapi (fun i v -> i, v) |> List.minBy snd |> fst
+    let discardPos = cards |> PossibleDiscardScores 0 |> List.mapi (fun i v -> i, v) |> List.minBy snd |> fst
     cards.[discardPos]
 
-let GetBestHandScore cardList = 
-    cardList |> FindDiscardCard |> GetRemovedDeadwood cardList
+let GetBestHandScore cardList = cardList |> FindDiscardCard |> GetRemovedDeadwood cardList
 
 let rec GetDeckScores computerHand possibleDeck = 
     match possibleDeck with
