@@ -73,8 +73,10 @@ namespace QUT
             }
 
             Discards.Add(DrawTopCardFromDeck());
-            PossibleCards = ComputerPlayer.CalculatePossibleDeck(ComputerCards, Discards[Discards.Count - 1], deck);
+            PossibleCards = CalculatePossibleDeck(ComputerCards, Discards[Discards.Count - 1], deck);
         }
+
+
 
         private Cards.Card DrawTopCardFromDeck()
         {
@@ -116,75 +118,6 @@ namespace QUT
                 pickedUpCard = false;
                 discardCard = null;
                 RunAi();
-            }
-        }
-
-        async private void RunAi()
-        {
-            await Task.Delay(300);
-            checkReaminingEmpty();
-            Cards.Card discardCard = Discards[Discards.Count - 1];
-            PossibleCards = ComputerPlayer.CalculatePossibleDeck(ComputerCards, discardCard, PossibleCards);
-            AiPickup(discardCard);
-            await Task.Delay(300);
-            AiMove();
-            await Task.Delay(100);
-            checkReaminingEmpty();
-            placedDownCard = true;
-        }
-
-        private void AiMove()
-        {
-            var move = ComputerPlayer.ComputerMove(ComputerCards);
-            if (move.Item1 == ComputerPlayer.Move.Continue)
-            {
-                ComputerCards.Remove(move.Item2.Value);
-                Discards.Add(move.Item2.Value);
-            }
-            else if (move.Item1 == ComputerPlayer.Move.Gin)
-            {
-                if (move.Item2.Value != null)
-                {
-                    ComputerCards.Remove(move.Item2.Value);
-                    Discards.Add(move.Item2.Value);
-                }
-                win(ComputerCards, HumanCards, true);
-            }
-            else
-            {
-                ComputerCards.Remove(move.Item2.Value);
-                Discards.Add(move.Item2.Value);
-                win(ComputerCards, HumanCards, true);
-            }
-        }
-
-        private void AiPickup(Cards.Card discardCard)
-        {
-            if (ComputerPlayer.ComputerPickupDiscard(ComputerCards, discardCard, PossibleCards))
-            {
-                Discards.Remove(discardCard);
-                ComputerCards.Add(discardCard);
-            }
-            else
-            {
-                ComputerCards.Add(DrawTopCardFromDeck());
-            }
-        }
-
-        private void checkReaminingEmpty()
-        {
-            if (RemainingDeck.Count <= 0)
-            {
-                Cards.Card newDiscard = Discards[Discards.Count - 1];
-                Discards.RemoveAt(Discards.Count - 1);
-                var temp = Cards.Shuffle(Discards);
-                Discards.Clear();
-                foreach (var card in temp)
-                {
-                    RemainingDeck.Add(card);
-                    Task.Delay(10);
-                }
-                Discards.Add(newDiscard);
             }
         }
 
@@ -252,6 +185,37 @@ namespace QUT
             NotificationRequest.Raise(new Notification { Content = msg, Title = title });
         }
 
+        private void ButtonClick()
+        {
+            win(HumanCards, ComputerCards, false);
+        }
+
+        private void win(ObservableCollection<Cards.Card> winner, ObservableCollection<Cards.Card> loser, bool aiOrPlayer)
+        {
+            int score = GinRummy.Score(winner, loser);
+            string result;
+
+            if (score < 0)
+            {
+                if (!aiOrPlayer) result = AIWin(score);
+                else result = PlayerWin(score);
+            }
+            else
+            {
+                if (aiOrPlayer) result = AIWin(score);
+                else result = PlayerWin(score);
+            }
+
+            RaiseNotification(result, "Title");
+            pickedUpCard = false;
+            placedDownCard = true;
+            HumanCards.Clear();
+            ComputerCards.Clear();
+            Discards.Clear();
+            RemainingDeck.Clear();
+            Deal();
+        }
+
         private string AIWin(int score)
         {
             string result = "";
@@ -294,35 +258,86 @@ namespace QUT
             return result;
         }
 
-        private void win(ObservableCollection<Cards.Card> winner, ObservableCollection<Cards.Card> loser, bool aiOrPlayer)
+        async private void RunAi()
         {
-            int score = GinRummy.Score(winner, loser);
-            string result;
+            await Task.Delay(300);
+            checkReaminingEmpty();
+            Cards.Card discardCard = Discards[Discards.Count - 1];
+            PossibleCards = CalculatePossibleDeck(ComputerCards, discardCard, PossibleCards);
+            AiPickup(discardCard);
+            await Task.Delay(300);
+            AiMove();
+            await Task.Delay(100);
+            checkReaminingEmpty();
+            placedDownCard = true;
+        }
 
-            if (score < 0)
+        ObservableCollection<Cards.Card> CalculatePossibleDeck(ObservableCollection<Cards.Card> computerCards, Cards.Card topDiscard, IEnumerable<Cards.Card> possibleDeckCards)
+        {
+            ObservableCollection<Cards.Card> tempCards = new ObservableCollection<Cards.Card>();
+            foreach (Cards.Card card in possibleDeckCards)
             {
-                if (!aiOrPlayer) result = AIWin(score);
-                else result = PlayerWin(score);
+                if (!card.Equals(topDiscard) && !computerCards.Contains(card))
+                {
+                    tempCards.Add(card);
+                }
+            }
+            return tempCards;
+        }
+
+        private void AiMove()
+        {
+            var move = ComputerPlayer.ComputerMove(ComputerCards);
+            if (move.Item1 == ComputerPlayer.Move.Continue)
+            {
+                ComputerCards.Remove(move.Item2.Value);
+                Discards.Add(move.Item2.Value);
+            }
+            else if (move.Item1 == ComputerPlayer.Move.Gin)
+            {
+                if (move.Item2.Value != null)
+                {
+                    ComputerCards.Remove(move.Item2.Value);
+                    Discards.Add(move.Item2.Value);
+                }
+                win(ComputerCards, HumanCards, true);
             }
             else
             {
-                if (aiOrPlayer) result = AIWin(score);
-                else result = PlayerWin(score);
+                ComputerCards.Remove(move.Item2.Value);
+                Discards.Add(move.Item2.Value);
+                win(ComputerCards, HumanCards, true);
             }
-
-            RaiseNotification(result, "Title");
-            pickedUpCard = false;
-            placedDownCard = true;
-            HumanCards.Clear();
-            ComputerCards.Clear();
-            Discards.Clear();
-            RemainingDeck.Clear();
-            Deal();
         }
 
-        private void ButtonClick()
+        private void AiPickup(Cards.Card discardCard)
         {
-            win(HumanCards, ComputerCards, false);
+            if (ComputerPlayer.ComputerPickupDiscard(ComputerCards, discardCard, PossibleCards))
+            {
+                Discards.Remove(discardCard);
+                ComputerCards.Add(discardCard);
+            }
+            else
+            {
+                ComputerCards.Add(DrawTopCardFromDeck());
+            }
+        }
+
+        private void checkReaminingEmpty()
+        {
+            if (RemainingDeck.Count <= 0)
+            {
+                Cards.Card newDiscard = Discards[Discards.Count - 1];
+                Discards.RemoveAt(Discards.Count - 1);
+                var temp = Cards.Shuffle(Discards);
+                Discards.Clear();
+                foreach (var card in temp)
+                {
+                    RemainingDeck.Add(card);
+                    Task.Delay(10);
+                }
+                Discards.Add(newDiscard);
+            }
         }
     }
 }

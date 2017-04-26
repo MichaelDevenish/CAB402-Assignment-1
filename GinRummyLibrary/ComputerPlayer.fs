@@ -42,9 +42,5 @@ let ComputerMove newHand =
         else if(score <= 10) then (Knock, Some Discard)
         else (Continue, Some Discard)
                     
-let CalculatePossibleDeck (computerHand:Hand) (topDiscard:Card) (possibleDeck:Deck) = 
-    let removeDiscard = Seq.filter (fun x -> not (x.Equals topDiscard)) possibleDeck
-    let hand = Set.ofSeq computerHand
-    Seq.filter (fun x -> not (hand.Contains x)) removeDiscard
    
     
